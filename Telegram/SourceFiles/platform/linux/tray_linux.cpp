@@ -256,6 +256,7 @@ rpl::producer<> TrayEventFilter::contextMenuFilters() const {
 }
 
 Tray::Tray() {
+#ifndef Q_OS_HAIKU
 	auto connection = Gio::bus_get_sync(Gio::BusType::SESSION_, nullptr);
 	if (connection) {
 		_sniWatcher = std::make_unique<base::Platform::DBus::ServiceWatcher>(
@@ -273,6 +274,7 @@ Tray::Tray() {
 				});
 			});
 	}
+#endif
 }
 
 void Tray::createIcon() {
@@ -341,10 +343,12 @@ void Tray::createMenu() {
 	if (!_menu) {
 		_menu = base::make_unique_q<QMenu>(nullptr);
 	}
+#ifndef Q_OS_HAIKU
 	if (!_menuCustom) {
 		_menuCustom = base::make_unique_q<Ui::PopupMenu>(nullptr);
 		_menuCustom->deleteOnHide(false);
 	}
+#endif
 }
 
 void Tray::destroyMenu() {

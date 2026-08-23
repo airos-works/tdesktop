@@ -7,18 +7,21 @@
 #include "base/platform/linux/base_haptic_linux.h"
 
 #include <QtGui/QGuiApplication>
-
+#ifndef Q_OS_HAIKU
 #include <sigxcpufeedback/sigxcpufeedback.hpp>
-
+#endif
 namespace base::Platform {
+#ifndef Q_OS_HAIKU
 namespace {
 
 using namespace gi::repository;
 namespace GObject = gi::repository::GObject;
 
 } // namespace
+#endif
 
 void Haptic() {
+#ifndef Q_OS_HAIKU
 	SigxcpuFeedback::HapticProxy::new_for_bus(
 		Gio::BusType::SESSION_,
 		Gio::DBusProxyFlags::NONE_,
@@ -44,6 +47,7 @@ void Haptic() {
 				}),
 				nullptr);
 		});
+#endif
 }
 
 bool IsSwipeBackEnabled() {

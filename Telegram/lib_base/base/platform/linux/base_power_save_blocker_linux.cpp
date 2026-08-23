@@ -13,6 +13,10 @@
 #include "base/weak_ptr.h"
 #include "base/random.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtGui/QWindow>
 
 #include <xdpinhibit/xdpinhibit.hpp>

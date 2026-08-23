@@ -35,7 +35,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <string>
 
-#include <ada.h>
+#include "ada.cpp"
+#include "ada.h"
 
 namespace Iv {
 namespace {

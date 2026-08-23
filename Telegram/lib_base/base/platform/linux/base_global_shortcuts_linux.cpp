@@ -16,6 +16,10 @@
 #include <QKeySequence>
 #include <QSocketNotifier>
 
+#ifdef __HAIKU__
+#define RTLD_NODELETE RTLD_NOLOAD
+#endif
+
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 // Declarations from the xcb-record/xcb-keysyms headers (X11 license),

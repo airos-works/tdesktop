@@ -20,8 +20,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtCore/QAbstractEventDispatcher>
 
+#ifndef Q_OS_HAIKU
 #include <gio/gio.hpp>
 #include <xdpinhibit/xdpinhibit.hpp>
+#endif
 
 #ifdef __GLIBC__
 #include <malloc.h>
@@ -29,7 +31,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Platform {
 namespace {
-
+#ifdef Q_OS_HAIKU
+class LinuxIntegration final : public Integration {
+};
+#else
 using namespace gi::repository;
 namespace GObject = gi::repository::GObject;
 
@@ -244,7 +249,7 @@ void LinuxIntegration::initInhibit() {
 		}),
 		nullptr);
 }
-
+#endif
 } // namespace
 
 std::unique_ptr<Integration> CreateIntegration() {

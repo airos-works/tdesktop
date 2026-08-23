@@ -21,6 +21,9 @@ namespace Platform {
 class MainWindow : public Window::MainWindow {
 public:
 	explicit MainWindow(not_null<Window::Controller*> controller);
+#ifdef Q_OS_HAIKU
+	bool isActiveForTrayMenu() override;
+#endif
 	~MainWindow();
 
 	void updateWindowIcon() override;

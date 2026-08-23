@@ -24,6 +24,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_controller.h"
 #include "webview/platform/linux/webview_linux_webkitgtk.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtGui/QDesktopServices>
@@ -47,6 +51,33 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <pwd.h>
 
 namespace {
+	
+#ifdef Q_OS_HAIKU
+void HaikuAutostart(bool start) {
+	const auto home = QDir::homePath();
+	if (home.isEmpty()) {
+		return;
+	}
+
+	QFile file(home + "/config/settings/boot/launch/telegram-desktop");
+	if (start) {
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+			QTextStream out(&file);
+			out
+				<< "#!/bin/bash" << Qt::endl
+				<< "cd /system/apps" << Qt::endl
+				<< "./Telegram -autostart" << " &" << Qt::endl;
+			file.close();
+			file.setPermissions(file.permissions()
+				| QFileDevice::ExeOwner
+				| QFileDevice::ExeGroup
+				| QFileDevice::ExeOther);
+		}
+	} else {
+		file.remove();
+	}
+}
+#endif // Q_OS_HAIKU
 
 using namespace gi::repository;
 namespace GObject = gi::repository::GObject;
@@ -443,7 +474,7 @@ bool GenerateServiceFile(bool silent = false) {
 			targetPath,
 			md5Hash));
 	}
-
+#ifndef Q_OS_HAIKU
 	XdgDBus::DBusProxy::new_for_bus(
 		Gio::BusType::SESSION_,
 		Gio::DBusProxyFlags::NONE_,
@@ -459,7 +490,7 @@ bool GenerateServiceFile(bool silent = false) {
 
 			interface.call_reload_config(nullptr);
 		});
-
+#endif
 	return true;
 }
 
@@ -621,6 +652,10 @@ bool AutostartSupported() {
 }
 
 void AutostartToggle(bool enabled, Fn<void(bool)> done) {
+#ifdef Q_OS_HAIKU
+	HaikuAutostart(enabled);
+	return;
+#else
 	if (KSandbox::isFlatpak()) {
 		PortalAutostart(enabled, done);
 		return;
@@ -648,6 +683,7 @@ void AutostartToggle(bool enabled, Fn<void(bool)> done) {
 	if (done) {
 		done(enabled && success);
 	}
+#endif
 }
 
 bool AutostartSkip() {
@@ -698,7 +734,11 @@ QString psAppDataPath() {
 		}
 	}
 
+#ifdef Q_OS_HAIKU
+	return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + '/';
+#else
 	return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + '/';
+#endif
 }
 
 void psDoCleanup() {
@@ -795,6 +835,7 @@ bool OpenSystemSettings(SystemSettingsType type) {
 			}
 			options.push_back(std::move(command));
 		};
+		add("Media");
 		add("unity-control-center", "sound");
 		add("kcmshell6", "kcm_pulseaudio");
 		add("kcmshell5", "kcm_pulseaudio");
@@ -804,7 +845,7 @@ bool OpenSystemSettings(SystemSettingsType type) {
 		add("mate-volume-control");
 		add("pavucontrol-qt");
 		add("pavucontrol");
-		add("alsamixergui");
+		add("alsamixergui");		
 		return ranges::any_of(options, [](const Command &command) {
 			QProcess process;
 			if (KSandbox::isInside()) {

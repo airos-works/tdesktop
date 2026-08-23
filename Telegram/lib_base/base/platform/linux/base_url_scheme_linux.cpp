@@ -9,6 +9,10 @@
 #include "base/integration.h"
 #include "base/debug_log.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtGui/QGuiApplication>
 
 #include <kshell.h>

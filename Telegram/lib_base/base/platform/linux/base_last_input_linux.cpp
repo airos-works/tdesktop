@@ -39,6 +39,11 @@ typedef struct xcb_screensaver_query_info_reply_t {
 
 #include <mutteridlemonitor/mutteridlemonitor.hpp>
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#include <InterfaceDefs.h>
+#endif
+
 namespace base::Platform {
 namespace {
 
@@ -127,9 +132,22 @@ std::optional<crl::time> MutterDBusLastUserInputTime() {
 	return (crl::now() - static_cast<crl::time>(std::get<1>(*result)));
 }
 
+#ifdef Q_OS_HAIKU
+std::optional<crl::time> HaikuLastUserInputTime() {	
+	const auto idle = idle_time() / 1000;
+	return (crl::now() - static_cast<crl::time>(idle));
+}
+#endif
+
 } // namespace
 
 std::optional<crl::time> LastUserInputTime() {
+#ifdef Q_OS_HAIKU
+	const auto haikuResult = HaikuLastUserInputTime();
+	if (haikuResult.has_value()) {
+		return haikuResult;
+	}
+#else
 	const auto xcbResult = XCBLastUserInputTime();
 	if (xcbResult.has_value()) {
 		return xcbResult;
@@ -139,7 +157,7 @@ std::optional<crl::time> LastUserInputTime() {
 	if (mutterResult.has_value()) {
 		return mutterResult;
 	}
-
+#endif
 	return std::nullopt;
 }
 

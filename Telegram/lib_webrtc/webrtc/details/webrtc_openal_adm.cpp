@@ -4,6 +4,11 @@
 // For license and copyright information please follow this link:
 // https://github.com/desktop-app/legal/blob/master/LEGAL
 //
+
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include "webrtc/details/webrtc_openal_adm.h"
 
 #include "base/timer.h"

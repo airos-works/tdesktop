@@ -1909,7 +1909,7 @@ void Instance::dataRequest(
 		socket->write("HTTP/1.1 ");
 		socket->write(partial ? "206 Partial Content\r\n" : "200 OK\r\n");
 
-		const auto mime = QByteArray(stream->mime());
+		const auto mime = QByteArray(stream->mime().c_str());
 		socket->write("Content-Type: " + mime + "\r\n");
 		socket->write("Accept-Ranges: bytes\r\n");
 		socket->write("Cache-Control: no-store\r\n");

@@ -55,7 +55,9 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
+#ifndef Q_OS_HAIKU
 	std::unique_ptr<base::Platform::DBus::ServiceWatcher> _sniWatcher;
+#endif
 	std::unique_ptr<IconGraphic> _iconGraphic;
 
 	base::unique_qptr<QSystemTrayIcon> _icon;

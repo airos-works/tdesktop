@@ -31,6 +31,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/fields/input_field.h"
 #include "ui/ui_utility.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtCore/QSize>
 #include <QtCore/QMimeData>
 #include <QtGui/QWindow>
@@ -141,6 +145,12 @@ void MainWindow::workmodeUpdated(Core::Settings::WorkMode mode) {
 
 	SkipTaskbar(windowHandle(), mode == WorkMode::TrayOnly);
 }
+
+#ifdef Q_OS_HAIKU
+bool MainWindow::isActiveForTrayMenu() {
+	return isVisible();
+}
+#endif
 
 void MainWindow::unreadCounterChangedHook() {
 	updateUnityCounter();

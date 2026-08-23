@@ -9,6 +9,8 @@
 #include "base/expected.h"
 #include "base/weak_ptr.h"
 
+#ifndef Q_OS_HAIKU
+
 typedef struct _GDBusConnection GDBusConnection;
 
 namespace base::Platform::DBus {
@@ -59,3 +61,5 @@ private:
 };
 
 } // namespace base::Platform::DBus
+
+#endif

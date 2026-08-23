@@ -10,6 +10,10 @@
 #include "ui/integration.h"
 #include "ui/style/style_core.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtWidgets/QApplication>
 #include <QtGui/QWindow>
 #include <QtGui/QtEvents>

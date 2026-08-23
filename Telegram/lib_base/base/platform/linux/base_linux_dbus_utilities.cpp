@@ -6,6 +6,8 @@
 //
 #include "base/platform/linux/base_linux_dbus_utilities.h"
 
+#ifndef Q_OS_HAIKU
+
 #include <xdgdbus/xdgdbus.hpp>
 
 namespace base::Platform::DBus {
@@ -150,3 +152,5 @@ ServiceWatcher::ServiceWatcher(
 ServiceWatcher::~ServiceWatcher() = default;
 
 } // namespace base::Platform::DBus
+
+#endif

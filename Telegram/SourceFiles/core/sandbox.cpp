@@ -300,7 +300,7 @@ void Sandbox::setupScreenScale() {
 
 	const auto screen = Sandbox::primaryScreen();
 	const auto dpi = screen->logicalDotsPerInch();
-	const auto basePair = screen->handle()->logicalBaseDpi();
+	const auto basePair = screen->handle()->logicalDpi(); // TODO: requires a fix at the QPA level
 	const auto base = (basePair.first + basePair.second) * 0.5;
 	const auto screenScaleExact = dpi / base;
 	const auto screenScale = int(base::SafeRound(screenScaleExact * 20)) * 5;
@@ -338,9 +338,12 @@ bool Sandbox::event(QEvent *e) {
 		if (Quitting()) {
 			return QCoreApplication::event(e);
 		}
-		Quit(QuitReason::QtQuitEvent);
-		e->ignore();
-		return false;
+		if (IsAppLaunched() && App().preventsQuit(QuitReason::QtQuitEvent)) {
+			e->ignore();
+			return false;
+		} else {
+			Quit(QuitReason::QtQuitEvent);
+		}
 	} else if (e->type() == QEvent::Close) {
 		Quit();
 	} else if (e->type() == DeadlockDetector::PingPongEvent::Type()) {
@@ -354,7 +357,7 @@ bool Sandbox::event(QEvent *e) {
 void Sandbox::socketConnected() {
 	LOG(("Socket connected, this is not the first application instance, sending show command..."));
 	_secondInstance = true;
-
+ 
 	QString commands;
 	if (qEnvironmentVariableIsSet("XDG_ACTIVATION_TOKEN")) {
 		commands += u"XDG_ACTIVATION_TOKEN:"_q + qgetenv("XDG_ACTIVATION_TOKEN").toBase64() + ';';

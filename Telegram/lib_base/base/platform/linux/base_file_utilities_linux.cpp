@@ -26,8 +26,58 @@
 #include <stdio.h>
 #include <fcntl.h>
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#include <AppKit.h>
+#include <StorageKit.h>
+#endif
+
 namespace base::Platform {
 namespace {
+	
+#ifdef Q_OS_HAIKU
+bool HaikuShowInFolder(const QString &filepath) {
+	try {
+		BMessenger trackerMessenger("application/x-vnd.Be-TRAK");
+		if (!trackerMessenger.IsValid())
+			return false;
+
+		BEntry fileEntry(filepath.toUtf8().data());
+		entry_ref fileRef;
+		if (fileEntry.GetRef(&fileRef) != B_OK)
+			return false;
+
+		if (!fileEntry.Exists())
+			return false;
+
+		BEntry folderEntry;
+		if (fileEntry.GetParent(&folderEntry) != B_OK)
+			return false;
+
+		entry_ref folderRef;
+		if (folderEntry.GetRef(&folderRef) != B_OK)
+			return false;
+
+		BMessage openCommand(B_REFS_RECEIVED);
+		openCommand.AddRef("refs", &folderRef);
+		node_ref fileNodeRef;
+		if (fileEntry.GetNodeRef(&fileNodeRef) == B_OK) {
+			openCommand.AddData("nodeRefToSelect", B_RAW_TYPE,
+				static_cast<void*>(&fileNodeRef), sizeof(node_ref));
+		}
+		if (trackerMessenger.SendMessage(&openCommand) == B_OK) {
+			snooze(300000);
+			BMessage selectCommand('Tsel');
+			selectCommand.AddRef("refs", &fileRef);
+			trackerMessenger.SendMessage(&selectCommand);
+			return true;
+		}
+	} catch (...) {
+	}
+
+	return false;
+}
+#endif
 
 using namespace gi::repository;
 namespace GObject = gi::repository::GObject;
@@ -127,12 +177,19 @@ void DBusShowInFolder(const QString &filepath, Fn<void()> fail) {
 } // namespace
 
 void ShowInFolder(const QString &filepath) {
+#ifdef Q_OS_HAIKU
+	if (!HaikuShowInFolder(filepath)) {
+		QDesktopServices::openUrl(
+			QUrl::fromLocalFile(QFileInfo(filepath).absolutePath()));
+	}
+#else
 	DBusShowInFolder(filepath, [=] {
 		PortalShowInFolder(filepath, [=] {
 			QDesktopServices::openUrl(
 				QUrl::fromLocalFile(QFileInfo(filepath).absolutePath()));
 		});
 	});
+#endif
 }
 
 QString CurrentExecutablePath(int argc, char *argv[]) {

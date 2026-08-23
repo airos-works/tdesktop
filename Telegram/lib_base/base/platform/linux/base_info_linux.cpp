@@ -310,6 +310,7 @@ bool IsX11() {
 }
 
 bool IsWayland() {
+#ifndef Q_OS_HAIKU
 	if (!qApp) {
 		static const auto result = []() -> bool {
 			struct wl_display *(*wl_display_connect)(const char *name);
@@ -329,6 +330,7 @@ bool IsWayland() {
 		}();
 		return result;
 	}
+#endif
 	static const bool result =
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 #if defined QT_FEATURE_wayland && QT_CONFIG(wayland)

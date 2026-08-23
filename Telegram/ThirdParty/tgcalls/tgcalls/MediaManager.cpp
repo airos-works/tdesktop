@@ -1073,7 +1073,7 @@ void MediaManager::fillCallStats(CallStats &callStats) {
 }
 
 void MediaManager::setAudioInputDevice(std::string id) {
-#if defined(WEBRTC_IOS)
+#if defined(WEBRTC_IOS) || defined(__HAIKU__)
 #else
     SetAudioInputDeviceById(_audioDeviceModule.get(), id);
 #endif

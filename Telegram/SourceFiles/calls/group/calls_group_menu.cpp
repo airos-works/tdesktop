@@ -579,6 +579,7 @@ void FillMenu(
 			real->recordStartDateValue(),
 			handler));
 	}
+#ifndef Q_OS_HAIKU
 	if (addScreenCast) {
 		const auto sharing = call->isSharingScreen();
 		const auto toggle = [=] {
@@ -596,6 +597,7 @@ void FillMenu(
 				: tr::lng_group_call_screen_share_start(tr::now)),
 			toggle);
 	}
+#endif
 	menu->addAction(tr::lng_group_call_settings(tr::now), [=] {
 		if (const auto strong = weak.get()) {
 			showBox(Box(SettingsBox, strong));

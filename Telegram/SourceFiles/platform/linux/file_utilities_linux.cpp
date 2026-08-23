@@ -16,6 +16,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <xdpopenuri/xdpopenuri.hpp>
 #include <xdprequest/xdprequest.hpp>
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#include <InterfaceKit.h>
+#include <StorageKit.h>
+#include <SupportKit.h>
+#include <MimeType.h>
+#include <Roster.h>
+#endif
+
 namespace Platform {
 namespace File {
 namespace {
@@ -28,6 +37,22 @@ using base::Platform::XdgActivationToken;
 namespace Unfused {
 
 bool UnsafeShowOpenWith(const QString &filepath) {
+#ifdef Q_OS_HAIKU
+	BMessenger trackerMessenger("application/x-vnd.Be-TRAK");
+	if (trackerMessenger.IsValid()) {
+		update_mime_info(filepath.toUtf8().data(), false, true, false);
+
+		BEntry fileEntry(filepath.toUtf8().data());
+		entry_ref fileRef;
+		if (fileEntry.GetRef(&fileRef) == B_OK) {
+			BMessage openCommand(B_REFS_RECEIVED);
+			openCommand.AddRef("refs", &fileRef);
+			openCommand.AddInt32("launchUsingSelector", 0);
+			if (trackerMessenger.SendMessage(&openCommand) == B_OK)
+				return true;
+		}
+	}
+#else
 	auto proxy = XdpOpenURI::OpenURIProxy::new_for_bus_sync(
 		Gio::BusType::SESSION_,
 		Gio::DBusProxyFlags::NONE_,
@@ -120,7 +145,7 @@ bool UnsafeShowOpenWith(const QString &filepath) {
 	window.setWindowModality(Qt::ApplicationModal);
 	window.show();
 	loop.run();
-
+#endif
 	return true;
 }
 

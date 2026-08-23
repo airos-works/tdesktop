@@ -8,6 +8,10 @@
 
 #include "base/platform/linux/base_linux_library.h"
 
+#ifdef __HAIKU__
+#define RTLD_NODELETE RTLD_NOLOAD
+#endif
+
 namespace base::Platform::XCB::Library {
 
 void *LoadSymbol(const char *name) {

@@ -3817,7 +3817,7 @@ public:
     }
 
     void setAudioOutputDevice(const std::string &id) {
-#ifndef WEBRTC_IOS
+#if !defined(WEBRTC_IOS) && !defined(__HAIKU__)
         _threads->getWorkerThread()->BlockingCall([&] {
             SetAudioOutputDeviceById(_audioDeviceModule.get(), id);
         });
@@ -3825,7 +3825,7 @@ public:
     }
 
     void setAudioInputDevice(const std::string &id) {
-#ifndef WEBRTC_IOS
+#if !defined(WEBRTC_IOS) && !defined(__HAIKU__)
         _threads->getWorkerThread()->BlockingCall([&] {
             SetAudioInputDeviceById(_audioDeviceModule.get(), id);
         });

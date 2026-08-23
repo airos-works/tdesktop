@@ -8,9 +8,16 @@
 
 #include "base/platform/linux/base_linux_library.h"
 
+#ifdef __HAIKU__
+#define RTLD_NODELETE 0
+#endif
+
 namespace Webview::WebKitGTK::Library {
 
 ResolveResult Resolve(Platform platform, WindowMode mode) {
+#ifdef __HAIKU__
+	return ResolveResult::NoLibrary;
+#else
 	const auto gtkPlug = (platform == Platform::X11)
 		&& (mode == WindowMode::Embedded);
 	const auto lib = (!gtkPlug
@@ -193,6 +200,7 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 	return gtk_init_check(0, 0)
 		? ResolveResult::Success
 		: ResolveResult::CantInit;
+#endif
 }
 
 } // namespace Webview::WebKitGTK::Library

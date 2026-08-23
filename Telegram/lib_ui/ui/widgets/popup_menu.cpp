@@ -22,6 +22,10 @@
 #include "base/timer.h"
 #include "ui/ui_utility.h"
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtGui/QtEvents>
 #include <QtGui/QPainter>
 #include <QtGui/QScreen>

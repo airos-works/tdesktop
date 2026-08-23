@@ -12,6 +12,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <gio/gio.h>
 
+#ifdef __HAIKU__
+#define RTLD_NODELETE 0
+#endif
+
 namespace Platform {
 namespace {
 

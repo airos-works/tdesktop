@@ -6,6 +6,10 @@
 //
 #include "base/platform/linux/base_linux_library.h"
 
+#ifdef __HAIKU__
+#define RTLD_NODELETE RTLD_NOLOAD
+#endif
+
 typedef unsigned long KeySym;
 typedef struct _XDisplay Display;
 typedef unsigned long Window;

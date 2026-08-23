@@ -10,6 +10,10 @@
 
 #include <xdpsettings/xdpsettings.hpp>
 
+#ifdef Q_OS_HAIKU
+#include <base/haiku_types.h>
+#endif
+
 #include <QtGui/QGuiApplication>
 #include <QtGui/QWindow>
 

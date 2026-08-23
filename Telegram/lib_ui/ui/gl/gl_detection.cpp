@@ -115,7 +115,7 @@ void CrashCheckStart() {
 }
 
 [[nodiscard]] bool OpenGLLibraryAvailable() {
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
+#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN) && !defined(Q_OS_HAIKU)
 	static const auto available = [] {
 		const auto check = [](void (*tramp)(), const char *name) {
 			return !tramp
@@ -132,6 +132,8 @@ void CrashCheckStart() {
 		return true;
 	}();
 	return available;
+#elif defined(Q_OS_HAIKU)
+	return false;
 #else // !Q_OS_MAC && !Q_OS_WIN
 	return true;
 #endif // Q_OS_MAC || Q_OS_WIN

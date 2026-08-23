@@ -358,16 +358,22 @@ bool Widget::clear() {
 // Attributes. Reports the container's orientation (e.g. a vertical list) so UI
 // Automation can describe a horizontal/vertical orientation.
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+    constexpr auto AccessibleOrientationAttribute = QAccessible::Attribute::Orientation;
+#else
+    constexpr auto AccessibleOrientationAttribute = static_cast<QAccessible::Attribute>(0x100d);
+#endif
+
 QList<QAccessible::Attribute> Widget::attributeKeys() const {
 	auto result = QList<QAccessible::Attribute>();
 	if (rp()->accessibilityOrientation().has_value()) {
-		result.append(QAccessible::Attribute::Orientation);
+		result.append(AccessibleOrientationAttribute);
 	}
 	return result;
 }
 
 QVariant Widget::attributeValue(QAccessible::Attribute key) const {
-	if (key == QAccessible::Attribute::Orientation) {
+	if (key == AccessibleOrientationAttribute) {
 		if (const auto orientation = rp()->accessibilityOrientation()) {
 			// Plain int by design: the UIA bridge reads this back with
 			// QVariant::toInt(), and Qt::Orientation isn't a registered

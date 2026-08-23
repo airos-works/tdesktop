@@ -37,6 +37,7 @@ constexpr auto kAlwaysOnEnvironmentVariable
 	return ::Platform::IsX11();
 }
 
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 [[nodiscard]] Gio::DBusProxyFlags StatusProxyFlags() {
 	return Gio::DBusProxyFlags::DO_NOT_AUTO_START_
 		| Gio::DBusProxyFlags::DO_NOT_AUTO_START_AT_CONSTRUCTION_;
@@ -81,7 +82,7 @@ constexpr auto kAlwaysOnEnvironmentVariable
 		const AtSpi::Status &status) {
 	return status && status.property_screen_reader_enabled().get();
 }
-
+#endif
 void Enqueue(FnMut<void()> update) {
 	if (Integration::Exists()) {
 		Integration::Instance().enterFromEventLoop(std::move(update));
@@ -92,17 +93,22 @@ void Enqueue(FnMut<void()> update) {
 
 } // namespace
 
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 struct LinuxScreenReaderState::Private {
 	Gio::DBusConnection connection;
 	AtSpi::Status status;
 	std::unique_ptr<DBus::ServiceWatcher> serviceWatcher;
 };
+#else
+struct LinuxScreenReaderState::Private {};
+#endif
 
 LinuxScreenReaderState::LinuxScreenReaderState()
 : _private(std::make_unique<Private>())
 , _useX11ScreenReaderDetection(UseX11ScreenReaderDetection())
 , _isActive(
 	_useX11ScreenReaderDetection ? AlwaysOn() : QAccessible::isActive()) {
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 	if (!_useX11ScreenReaderDetection) {
 		QAccessible::installActivationObserver(this);
 		return;
@@ -132,12 +138,22 @@ LinuxScreenReaderState::LinuxScreenReaderState()
 
 	refreshStatusProxy();
 	updateActive();
+#else
+	if (!_useX11ScreenReaderDetection) {
+		return;
+	}
+
+	refreshStatusProxy();
+	updateActive();
+#endif
 }
 
 LinuxScreenReaderState::~LinuxScreenReaderState() {
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 	if (!_useX11ScreenReaderDetection) {
 		QAccessible::removeActivationObserver(this);
 	}
+#endif
 }
 
 void LinuxScreenReaderState::accessibilityActiveChanged(bool active) {
@@ -147,6 +163,7 @@ void LinuxScreenReaderState::accessibilityActiveChanged(bool active) {
 }
 
 void LinuxScreenReaderState::refreshStatusProxy() {
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 	_private->status = {};
 	if (!_useX11ScreenReaderDetection
 		|| AlwaysOn()
@@ -169,6 +186,7 @@ void LinuxScreenReaderState::refreshStatusProxy() {
 			}
 		});
 	});
+#endif
 }
 
 void LinuxScreenReaderState::updateActive() {
@@ -177,7 +195,11 @@ void LinuxScreenReaderState::updateActive() {
 	} else if (AlwaysOn()) {
 		_isActive = true;
 	} else {
+#if defined(USE_DBUS_ACCESSIBILITY) && !defined(__HAIKU__)
 		_isActive = ReadScreenReaderEnabled(_private->status);
+#else
+		_isActive = QAccessible::isActive();
+#endif
 	}
 }
 
