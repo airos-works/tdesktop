@@ -13,7 +13,11 @@
 #endif
 
 #include <errno.h>
+#ifdef __HAIKU__
+#include <hidapi/hidapi.h>
+#else
 #include <hidapi.h>
+#endif
 #include <wchar.h>
 
 #include "fido.h"

@@ -7,7 +7,19 @@
 
 #include "openbsd-compat.h"
 
-#if !defined(HAVE_EXPLICIT_BZERO) && !defined(_WIN32)
+#if defined(__HAIKU__)
+
+#include <string.h>
+
+void
+explicit_bzero(void *p, size_t n)
+{
+	if (n == 0)
+		return;
+	bzero(p, n);
+}
+
+#elif !defined(HAVE_EXPLICIT_BZERO) && !defined(_WIN32)
 
 #include <string.h>
 

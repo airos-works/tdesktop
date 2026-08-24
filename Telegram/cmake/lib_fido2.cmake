@@ -9,7 +9,7 @@
 # On Windows it serves only systems without webauthn.dll (Win7/8/8.1,
 # Win10 < 1903); winhello.c is left out.
 
-if (DESKTOP_APP_USE_PACKAGED)
+if (DESKTOP_APP_USE_PACKAGED AND NOT HAIKU)
     find_package(PkgConfig)
     if (PkgConfig_FOUND)
         pkg_check_modules(TDESKTOP_FIDO2 IMPORTED_TARGET libfido2)
@@ -111,6 +111,9 @@ if (WIN32)
 elseif (APPLE)
     list(APPEND fido2_sources
         ${fido2_src}/hid_osx.c)
+elseif (HAIKU)
+    list(APPEND fido2_sources
+        ${fido2_src}/hid_hidapi.c)
 else()
     list(APPEND fido2_sources
         ${fido2_src}/hid_linux.c
@@ -234,6 +237,12 @@ elseif (APPLE)
     PRIVATE
         CoreFoundation
         IOKit)
+elseif (HAIKU)
+    target_link_libraries(lib_fido2
+    PRIVATE
+        device
+        hidapi
+        )
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(TDESKTOP_UDEV REQUIRED IMPORTED_TARGET libudev)
