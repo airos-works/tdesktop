@@ -10,10 +10,34 @@
 #include "ui/painter.h"
 #include "styles/style_widgets.h"
 
+#include <QtCore/QVarLengthArray>
+#include <cmath>
+
 namespace Ui {
 namespace {
 
 constexpr auto kFullArcLength = arc::kFullLength;
+
+void DrawArc(QPainter &p, const QRectF &rect, int from, int len) {
+	if (len == 0 || rect.isEmpty()) {
+		return;
+	}
+	constexpr auto kRad = 3.14159265358979323846 / 2880.0;
+	const auto steps = std::clamp(int(std::abs(len) / 64), 2, 90);
+	const auto cx = rect.center().x();
+	const auto cy = rect.center().y();
+	const auto rx = rect.width() / 2.0;
+	const auto ry = rect.height() / 2.0;
+	const auto fromRad = from * kRad;
+	const auto lenRad = len * kRad;
+
+	QVarLengthArray<QPointF, 96> points(steps + 1);
+	for (auto i = 0; i <= steps; ++i) {
+		const auto angle = fromRad + (lenRad * i) / steps;
+		points[i] = QPointF(cx + rx * std::cos(angle), cy - ry * std::sin(angle));
+	}
+	p.drawPolyline(points.data(), points.size());
+}
 
 } // namespace
 
@@ -78,6 +102,10 @@ void RadialAnimation::draw(
 		const QRectF &inner,
 		float64 thickness,
 		style::color color) const {
+	if (inner.isEmpty()) {
+		return;
+	}
+
 	const auto state = computeState();
 
 	auto o = p.opacity();
@@ -91,7 +119,7 @@ void RadialAnimation::draw(
 
 	{
 		PainterHighQualityEnabler hq(p);
-		p.drawArc(inner, state.arcFrom, state.arcLength);
+		DrawArc(p, inner, state.arcFrom, state.arcLength);
 	}
 
 	p.setPen(was);
@@ -224,7 +252,8 @@ void InfiniteRadialAnimation::Draw(
 
 		{
 			PainterHighQualityEnabler hq(p);
-			p.drawArc(
+			DrawArc(
+				p,
 				rect,
 				state.arcFrom,
 				state.arcLength);
