@@ -53,7 +53,7 @@ requires		{
 	lib:libopus
 	lib:libqrcodegencpp
 	lib:librnnoise
-	lib:libvpx >= 8
+	lib:libvpx >= 12
 	lib:libxxhash
 	lib:libz
 	lib:libstdc++
