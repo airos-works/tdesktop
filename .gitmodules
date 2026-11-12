@@ -58,3 +58,6 @@
 [submodule "Telegram/ThirdParty/libcbor"]
 	path = Telegram/ThirdParty/libcbor
 	url = https://github.com/PJK/libcbor.git
+[submodule "cmake/external/glib/cppgir"]
+	path = cmake/external/glib/cppgir
+	url = https://gitlab.com/mnauw/cppgir.git
