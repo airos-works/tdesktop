@@ -601,6 +601,8 @@ PRIVATE
     core/phone_click_handler.cpp
     core/phone_click_handler.h
     core/sandbox.cpp
+    core/startup_trace.cpp
+    core/startup_trace.h
     core/sandbox.h
     core/shortcuts.cpp
     core/shortcuts.h

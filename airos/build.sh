@@ -84,6 +84,15 @@ sys=$SYSROOT_DIR/boot/system
 export PKG_CONFIG_LIBDIR=$sys/develop/lib/pkgconfig:$sys/lib/pkgconfig:$sys/data/pkgconfig
 export PKG_CONFIG_PATH= PKG_CONFIG_SYSROOT_DIR=$SYSROOT_DIR
 export LD_LIBRARY_PATH=$HOSTQT/lib:$HOSTSVG/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+# Start-up: Haiku links every program as a shared object (-shared), so all
+# of Telegram's symbols were exported and each of its references to itself
+# (vtables, PLT calls: ~370,000 relocations) was looked up by name through
+# ~120 images at every start. Hidden visibility and -Bsymbolic bind them
+# when linking; the GNU hash table lets the libraries' own lookups, which
+# search the program first, skip it with a bloom filter (runtime_loader
+# also requires the SysV table, hence "both").
+VISIBILITY="-fvisibility=hidden"
+STARTUP_LDFLAGS="-Wl,-O1 -Wl,-Bsymbolic -Wl,--hash-style=both -Wl,--exclude-libs,ALL"
 if [[ ! -f $BUILD/build.ninja || $ROOT/airos/build.sh -nt $BUILD/build.ninja ]]; then
 	cmake -S "$ROOT" -B "$BUILD" -G Ninja \
 		-DCMAKE_TOOLCHAIN_FILE="$ROOT/airos/toolchain.cmake" \
@@ -92,7 +101,9 @@ if [[ ! -f $BUILD/build.ninja || $ROOT/airos/build.sh -nt $BUILD/build.ninja ]];
 		-DTDESKTOP_HOST_CODEGEN="$CODEGEN/bin" -DQSB_EXECUTABLE="$HOSTQT/bin/qsb" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_CXX_FLAGS_RELEASE="-O2" -DCMAKE_C_FLAGS_RELEASE="-O2" \
-		-DCMAKE_EXE_LINKER_FLAGS="-lnetwork -lbe -lmedia -specs=$UNWIND_SPECS" \
+		-DCMAKE_CXX_FLAGS="$VISIBILITY -fvisibility-inlines-hidden" \
+		-DCMAKE_C_FLAGS="$VISIBILITY" \
+		-DCMAKE_EXE_LINKER_FLAGS="-lnetwork -lbe -lmedia -specs=$UNWIND_SPECS $STARTUP_LDFLAGS" \
 		-DCMAKE_SHARED_LINKER_FLAGS="-specs=$UNWIND_SPECS" \
 		-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 		-DBoost_USE_STATIC_LIBS=OFF \

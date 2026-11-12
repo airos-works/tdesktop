@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/application.h"
 
+#include "core/startup_trace.h"
+
 #include "data/data_abstract_structure.h"
 #include "data/data_channel.h"
 #include "data/data_forum.h"
@@ -307,10 +309,13 @@ void Application::run() {
 	// Depends on notifications settings.
 	_notifications = std::make_unique<Window::Notifications::System>();
 
+	StartupTrace("run");
 	startLocalStorage();
+	StartupTrace("local storage");
 
 	style::SetCustomFont(settings().customFontFamily());
 	style::internal::StartFonts();
+	StartupTrace("fonts");
 
 	Test::ApplyStartupOverrides();
 
@@ -336,16 +341,19 @@ void Application::run() {
 	_translator = std::make_unique<Lang::Translator>();
 	QCoreApplication::instance()->installTranslator(_translator.get());
 
+	StartupTrace("translator");
 	style::StartManager(cScale());
 	Ui::Accessible::Init();
 	Ui::InitTextOptions();
 	Ui::StartCachedCorners();
 	Ui::Emoji::Init();
 	Ui::PreloadTextSpoilerMask(_lifetime);
+	StartupTrace("styles, emoji");
 	startShortcuts();
 	startEmojiImageLoader();
 	startSystemDarkModeViewer();
 	Media::Player::start(_audio.get());
+	StartupTrace("audio player");
 	Media::Encode::ClearStaleTempFiles();
 
 	if (MediaControlsManager::Supported()) {
@@ -374,11 +382,13 @@ void Application::run() {
 
 	// Create mime database, so it won't be slow later.
 	QMimeDatabase().mimeTypeForName(u"text/plain"_q);
+	StartupTrace("mime database");
 
 	// Check now to avoid re-entrance later.
 	[[maybe_unused]] const auto &webviewAvailability
 		= Core::CachedWebviewAvailability();
 
+	StartupTrace("webview availability");
 	_savedWindows = std::make_unique<Window::SavedWindows>(this);
 
 	_windows.emplace(nullptr, std::make_unique<Window::Controller>());
@@ -428,15 +438,20 @@ void Application::run() {
 
 	DEBUG_LOG(("Application Info: window created..."));
 
+	StartupTrace("window created");
 	startDomain();
+	StartupTrace("domain");
 	startTray();
+	StartupTrace("tray");
 
 	_lastActivePrimaryWindow->firstShow();
 
 	startMediaView();
 
 	DEBUG_LOG(("Application Info: showing."));
+	StartupTrace("first show");
 	_lastActivePrimaryWindow->finishFirstShow();
+	StartupTrace("finish first show");
 
 	if (!_lastActivePrimaryWindow->locked() && cStartToSettings()) {
 		_lastActivePrimaryWindow->showSettings();

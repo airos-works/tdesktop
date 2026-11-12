@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/launcher.h"
+#include "core/startup_trace.h"
 
 extern "C" {
 #include <openssl/crypto.h>
@@ -17,6 +18,7 @@ int main(int argc, char *argv[]) {
 	// be inside OpenSSL, so an ordinary quit can fault on a worker thread.
 	// Suppressing that registration leaves the library state alive until the
 	// process exits, which is the trade we want: the OS reclaims it anyway.
+	Core::StartupTrace("main");
 	OPENSSL_init_crypto(OPENSSL_INIT_NO_ATEXIT, nullptr);
 
 	const auto launcher = Core::Launcher::Create(argc, argv);

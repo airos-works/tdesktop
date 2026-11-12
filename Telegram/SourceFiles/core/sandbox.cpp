@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/sandbox.h"
 
+#include "core/startup_trace.h"
+
 #ifdef Q_OS_HAIKU
 #include "platform/haiku/app_messages_haiku.h"
 #endif // Q_OS_HAIKU
@@ -72,6 +74,7 @@ Sandbox::Sandbox(int &argc, char **argv)
 }
 
 int Sandbox::start() {
+	StartupTrace("Sandbox::start");
 	{
 		const auto d = QFile::encodeName(QDir(cWorkingDir()).absolutePath());
 		char h[33] = { 0 };
@@ -286,7 +289,9 @@ void Sandbox::launchApplication() {
 				: nullptr;
 		}, _lifetime);
 
+		StartupTrace("Application: creating");
 		_application = std::make_unique<Application>();
+		StartupTrace("Application: created");
 
 		// Ideally this should go to constructor.
 		// But we want to catch all native events and Application installs
@@ -684,6 +689,9 @@ bool Sandbox::notify(QObject *receiver, QEvent *e) {
 	}
 
 	const auto wrap = createEventNestingLevel();
+	if (e->type() == QEvent::Expose && _application) {
+		StartupTrace("first frame");
+	}
 	if (e->type() == QEvent::UpdateRequest) {
 		const auto weak = QPointer<QObject>(receiver);
 		_widgetUpdateRequests.fire({});

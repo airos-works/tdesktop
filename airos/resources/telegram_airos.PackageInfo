@@ -1,0 +1,68 @@
+name			telegram_airos
+version			7.1.3~airos1-1
+architecture		x86_64
+summary			"Telegram for air/OS"
+description		"Telegram Desktop for air/OS (airos-works/tdesktop): Telegram's official desktop client with an air/OS platform layer on the Be API (BNotification, Tracker, the roster, Deskbar) instead of the freedesktop one, single launch, and a start in well under a second."
+packager		"air/OS CI"
+vendor			"air/OS"
+copyrights		{
+	"2013-2026 Telegram"
+}
+licenses		{
+	"GNU GPL v3"
+}
+urls			{
+	"https://github.com/airos-works/tdesktop"
+}
+flags			{
+	approve_license
+}
+provides		{
+	telegram_airos = 7.1.3~airos1
+	app:Telegram = 7.1.3
+}
+requires		{
+	haiku >= r1~beta6
+	lib:libQt6Core >= 6.10
+	lib:libQt6Gui >= 6.10
+	lib:libQt6Network >= 6.10
+	lib:libQt6OpenGL >= 6.10
+	lib:libQt6OpenGLWidgets >= 6.10
+	lib:libQt6Svg >= 6.10
+	lib:libQt6Widgets >= 6.10
+	qt6_imageformats
+	lib:libavcodec >= 62
+	lib:libavfilter >= 11
+	lib:libavformat >= 62
+	lib:libavutil >= 60
+	lib:libswresample >= 6
+	lib:libswscale >= 9
+	lib:libavif >= 16
+	lib:libcrypto >= 3
+	lib:libssl >= 3
+	lib:libheif >= 1
+	lib:libhidapi
+	lib:libhunspell_1.7
+	lib:libjpeg
+	lib:libjxl >= 0.11
+	lib:libjxl_threads >= 0.11
+	lib:liblz4
+	lib:libminizip
+	lib:libopenal
+	lib:libopenh264 >= 2.4
+	lib:libopus
+	lib:libqrcodegencpp
+	lib:librnnoise
+	lib:libvpx >= 8
+	lib:libxxhash
+	lib:libz
+	lib:libstdc++
+	lib:libgcc_s
+	open_sans
+}
+conflicts		{
+	telegram_desktop
+}
+replaces		{
+	telegram_desktop
+}

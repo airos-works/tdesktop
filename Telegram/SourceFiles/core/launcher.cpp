@@ -14,6 +14,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/platform/base_platform_file_utilities.h"
 #include "ui/main_queue_processor.h"
 #include "core/crash_reports.h"
+#include "core/startup_trace.h"
 #include "core/update_checker.h"
 #include "core/sandbox.h"
 #include "core/version.h"
@@ -628,7 +629,9 @@ void Launcher::processArguments() {
 
 int Launcher::executeApplication() {
 	FilteredCommandLineArguments arguments(_argc, _argv);
+	StartupTrace("QApplication: creating");
 	Sandbox sandbox(arguments.count(), arguments.values());
+	StartupTrace("QApplication: created");
 	Ui::MainQueueProcessor processor;
 	base::ConcurrentTimerEnvironment environment;
 	return sandbox.start();
