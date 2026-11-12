@@ -1,3 +1,26 @@
+# Telegram for air/OS
+
+This fork (branch `airos`) is Telegram Desktop for [air/OS](https://github.com/airos-works/haiku), the Haiku-based desktop. It is the official client, version 7.1.3, with an air/OS platform layer on the Be API in place of the freedesktop one the Haiku port used to compile (GLib, GIO, D-Bus, XCB, WebKitGTK, portals):
+
+| | air/OS |
+|---|---|
+| Notifications | `BNotification` with the sender's picture; a click opens the chat through the roster |
+| Second launch, `tg://` links | `B_SINGLE_LAUNCH`: the roster hands the arguments to the running Telegram (`B_ARGV_RECEIVED`); `tg://` and `tonsite://` are registered as `application/x-vnd.Be.URL.*` types |
+| Show in folder, Open with | Tracker |
+| Autostart | `~/config/settings/boot/launch` |
+| Idle time | `idle_time()` |
+| Audio settings | the Media preferences |
+
+It starts in about 0.4 s on a Ryzen laptop (the earlier Haiku port took about 6 s, 5 of them waiting for a WebKitGTK helper that cannot exist on Haiku): the program binds its own symbols at link time instead of exporting 250,000 of them to the runtime loader, the libraries most symbols come from are searched first, and nothing on the way to the first window waits for the disk (emoji sprites, lock files) or for Deskbar. `TDESKTOP_STARTUP_TRACE=1` prints the time each step of the start takes.
+
+The package `telegram_airos` replaces HaikuPorts' `telegram_desktop` and keeps its data (`~/config/settings/TelegramDesktop`). CI builds it on every push to `airos` (`.github/workflows/airos.yml`, airos-works/airos-ci `build_telegram`); to build by hand, from Linux:
+
+    airos/build.sh x86_64        # sysroot from HaikuPorts' packages, host code generators, cross build
+
+The upstream README follows.
+
+---
+
 # [Telegram Desktop][telegram_desktop] – Official Messenger
 
 This is the complete source code and the build instructions for the official [Telegram][telegram] messenger desktop client, based on the [Telegram API][telegram_api] and the [MTProto][telegram_proto] secure protocol.
