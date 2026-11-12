@@ -10,9 +10,6 @@
 [submodule "Telegram/ThirdParty/lz4"]
 	path = Telegram/ThirdParty/lz4
 	url = https://github.com/lz4/lz4.git
-[submodule "Telegram/lib_crl"]
-	path = Telegram/lib_crl
-	url = https://github.com/desktop-app/lib_crl.git
 [submodule "Telegram/lib_rpl"]
 	path = Telegram/lib_rpl
 	url = https://github.com/desktop-app/lib_rpl.git
