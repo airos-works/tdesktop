@@ -13,9 +13,6 @@
 [submodule "Telegram/lib_ui"]
 	path = Telegram/lib_ui
 	url = https://github.com/desktop-app/lib_ui.git
-[submodule "Telegram/lib_tl"]
-	path = Telegram/lib_tl
-	url = https://github.com/desktop-app/lib_tl.git
 [submodule "Telegram/ThirdParty/expected"]
 	path = Telegram/ThirdParty/expected
 	url = https://github.com/TartanLlama/expected
