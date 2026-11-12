@@ -65,6 +65,10 @@ public:
 
 	rpl::producer<> widgetUpdateRequests() const;
 
+	// The commands a second instance sends ("CMD:show;OPEN:tg://...;"),
+	// from another source than the local socket (air/OS: the roster).
+	void processExternalCommands(const QString &commands);
+
 	MTP::ProxyData sandboxProxy() const;
 
 	static Sandbox &Instance() {

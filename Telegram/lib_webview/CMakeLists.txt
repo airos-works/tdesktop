@@ -25,6 +25,9 @@ PRIVATE
     webview/platform/mac/webview_mac.h
     webview/platform/mac/webview_mac.mm
 
+    webview/platform/haiku/webview_haiku.cpp
+    webview/platform/haiku/webview_haiku.h
+
     webview/platform/linux/webview_linux.h
     webview/platform/linux/webview_linux.cpp
     webview/platform/linux/webview_linux_compositor.cpp
@@ -59,7 +62,7 @@ PUBLIC
 
 if (WIN32)
     nuget_add_webview(lib_webview)
-elseif (LINUX)
+elseif (LINUX AND NOT HAIKU)
     include(${cmake_helpers_loc}/external/glib/generate_dbus.cmake)
     generate_dbus(lib_webview org.desktop_app.GtkIntegration.Webview. Webview ${src_loc}/webview/platform/linux/webview_linux_interface.xml)
 

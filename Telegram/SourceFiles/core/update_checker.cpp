@@ -36,11 +36,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <ksandbox.h>
 
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 #include "base/platform/linux/base_linux_xdp_utilities.h"
 
 #include <flatpakportal/flatpakportal.hpp>
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 
 extern "C" {
 #include <openssl/rsa.h>
@@ -67,11 +67,11 @@ namespace {
 constexpr auto kUpdaterTimeout = 10 * crl::time(1000);
 constexpr auto kMaxResponseSize = 1024 * 1024;
 
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 constexpr auto kFlatpakPortalService = "org.freedesktop.portal.Flatpak";
 constexpr auto kFlatpakPortalObjectPath = "/org/freedesktop/portal/Flatpak";
 constexpr auto kFlatpakUpdated = "/app/.updated"_cs;
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 
 #ifdef TDESKTOP_DISABLE_AUTOUPDATE
 bool UpdaterIsDisabled = true;
@@ -94,10 +94,10 @@ using VersionChar = wchar_t;
 
 using Loader = MTP::AbstractDedicatedLoader;
 
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 using namespace gi::repository;
 namespace GObject = gi::repository::GObject;
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 
 struct BIODeleter {
 	void operator()(BIO *value) {
@@ -238,7 +238,7 @@ private:
 
 };
 
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 class FlatpakChecker : public Checker {
 public:
 	FlatpakChecker(bool testing);
@@ -270,7 +270,7 @@ private:
 	ulong _progressSignal = 0;
 
 };
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 
 std::shared_ptr<Updater> GetUpdaterInstance() {
 	if (const auto result = UpdaterInstance.lock()) {
@@ -1113,7 +1113,7 @@ Fn<void(const MTP::Error &error)> MtpChecker::failHandler() {
 	};
 }
 
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 FlatpakChecker::FlatpakChecker(bool testing)
 : Checker(testing)
 , _watcher({u"/app"_q}) {
@@ -1266,7 +1266,7 @@ FlatpakLoader::~FlatpakLoader() {
 		_monitor.disconnect(_progressSignal);
 	}
 }
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 
 } // namespace
 
@@ -1495,13 +1495,13 @@ void Updater::start(bool forceWait) {
 	}
 
 	if (KSandbox::isFlatpak()) {
-#if !defined Q_OS_WIN && !defined Q_OS_MAC
+#if !defined Q_OS_WIN && !defined Q_OS_MAC && !defined Q_OS_HAIKU
 		if (!_flatpakImplementation.checker) {
 			startImplementation(
 				&_flatpakImplementation,
 				std::make_unique<FlatpakChecker>(_testing));
 		}
-#endif // !Q_OS_WIN && !Q_OS_MAC
+#endif // !Q_OS_WIN && !Q_OS_MAC && !Q_OS_HAIKU
 	} else if (sendRequest) {
 		startImplementation(
 			&_httpImplementation,

@@ -31,8 +31,23 @@ note() { printf '\n== %s\n' "$*"; }
 note "sysroot"
 AIROS_CI=$AIROS_CI "$ROOT/airos/setup-sysroot.sh" "$ARCH" "$SYSROOT_DIR"
 . "$AIROS_CI/lib/env.sh"
-export AIROS_ARCH=$ARCH
-. "$AIROS_CI/lib/sdk.sh"
+
+# The cross compiler: a copy of the air/OS SDK's, so that CI rebuilding
+# its SDK (which holds the SDK lock for a long time) neither blocks nor
+# changes a Telegram build under way. Refreshed when the SDK's changes.
+sdk_env() { sed -n "s/^$1=//p" "$AIROS_SDK/$ARCH/env.sh"; }
+TRIPLET=$(sdk_env TRIPLET)
+SDK_CROSS=$(sdk_env CROSS)
+TOOLS=$(sdk_env TOOLS)
+CROSS_DIR=$WORK/cross-$ARCH
+sdk_tools=$(dirname "$(dirname "$SDK_CROSS")")
+if [[ ! -x $CROSS_DIR/bin/${TRIPLET}-g++ || $sdk_tools/bin/${TRIPLET}-gcc -nt $CROSS_DIR/bin/${TRIPLET}-gcc ]]; then
+	note "cross toolchain snapshot"
+	rsync -a --delete "$sdk_tools/" "$CROSS_DIR/"
+	cp "$AIROS_SDK/$ARCH/shared-unwinder.specs" "$CROSS_DIR/"
+fi
+CROSS=$CROSS_DIR/bin/${TRIPLET}-
+UNWIND_SPECS=$CROSS_DIR/shared-unwinder.specs
 
 note "host tools"
 HOSTSVG=$HOST/qtsvg-$QT_VERSION
@@ -57,6 +72,7 @@ fi
 CODEGEN=$HOST/codegen
 cmake -S "$ROOT/airos/host-codegen" -B "$HOST/codegen-build" -G Ninja \
 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$HOSTQT;$HOSTSVG" \
+	-DQT_ADDITIONAL_PACKAGES_PREFIX_PATH="$HOSTSVG" \
 	-DCMAKE_INSTALL_PREFIX="$CODEGEN" > /dev/null
 cmake --build "$HOST/codegen-build" -j"$JOBS"
 cmake --install "$HOST/codegen-build" > /dev/null
@@ -64,13 +80,16 @@ cmake --install "$HOST/codegen-build" > /dev/null
 note "Telegram ($ARCH)"
 API_ID=${TDESKTOP_API_ID:-611335}
 API_HASH=${TDESKTOP_API_HASH:-d524b414d21f4d37f08684c1df41ac9c}
+sys=$SYSROOT_DIR/boot/system
+export PKG_CONFIG_LIBDIR=$sys/develop/lib/pkgconfig:$sys/lib/pkgconfig:$sys/data/pkgconfig
+export PKG_CONFIG_PATH= PKG_CONFIG_SYSROOT_DIR=$SYSROOT_DIR
 export LD_LIBRARY_PATH=$HOSTQT/lib:$HOSTSVG/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-if [[ ! -f $BUILD/build.ninja ]]; then
+if [[ ! -f $BUILD/build.ninja || $ROOT/airos/build.sh -nt $BUILD/build.ninja ]]; then
 	cmake -S "$ROOT" -B "$BUILD" -G Ninja \
 		-DCMAKE_TOOLCHAIN_FILE="$ROOT/airos/toolchain.cmake" \
 		-DAIROS_ARCH="$ARCH" -DAIROS_SYSROOT="$SYSROOT_DIR" -DAIROS_CROSS="$CROSS" \
 		-DQT_HOST_PATH="$HOSTQT" -DQT_HOST_PATH_CMAKE_DIR="$HOSTQT/lib/cmake" \
-		-DTDESKTOP_HOST_CODEGEN="$CODEGEN/bin" \
+		-DTDESKTOP_HOST_CODEGEN="$CODEGEN/bin" -DQSB_EXECUTABLE="$HOSTQT/bin/qsb" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_CXX_FLAGS_RELEASE="-O2" -DCMAKE_C_FLAGS_RELEASE="-O2" \
 		-DCMAKE_EXE_LINKER_FLAGS="-lnetwork -lbe -lmedia -specs=$UNWIND_SPECS" \
@@ -100,4 +119,20 @@ if [[ ! -f $BUILD/build.ninja ]]; then
 		-DLZ4_INCLUDE_DIRS="$SYSROOT_DIR/boot/system/develop/headers" \
 		-Wno-dev
 fi
-ninja -C "$BUILD" -j"$JOBS" "${@:-Telegram}"
+ninja -C "$BUILD" -j"$JOBS" ${NINJA_FLAGS:-} "${@:-Telegram}"
+
+# Resources (signature, B_SINGLE_LAUNCH, version, icon) on the binary;
+# TDESKTOP_SIGNATURE gives a test build a signature of its own, so it runs
+# beside the installed Telegram instead of handing launches to it.
+if [[ " ${*:-Telegram} " == *" Telegram "* ]]; then
+	note "resources"
+	signature=${TDESKTOP_SIGNATURE:-application/x-vnd.telegram}
+	version=$(awk '$1 == "AppVersionStr" { print $2 }' "$ROOT/Telegram/build/version")
+	IFS=. read -r major middle minor <<< "$version"
+	sed -e "s|@APP_SIGNATURE@|$signature|" -e "s|@MAJOR@|$major|" \
+		-e "s|@MIDDLE@|$middle|" -e "s|@MINOR@|${minor:-0}|" \
+		-e "s|@LONG_INFO@|Telegram for air/OS|" \
+		"$ROOT/airos/resources/telegram_desktop.rdef.in" > "$BUILD/Telegram.rdef"
+	"$TOOLS/rc/rc" -o "$BUILD/Telegram.rsrc" "$BUILD/Telegram.rdef"
+	"$TOOLS/xres" -o "$BUILD/bin/Telegram" "$BUILD/Telegram.rsrc"
+fi

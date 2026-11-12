@@ -17,7 +17,7 @@
 #include <QtGui/QFontInfo>
 #include <QtGui/QFontDatabase>
 
-#if __has_include(<glib.h>)
+#if __has_include(<glib.h>) && !defined Q_OS_HAIKU
 #include <glib.h>
 #endif // __has_include(<glib.h>)
 
@@ -383,7 +383,7 @@ void StartFonts() {
 			+ name
 			+ u"', expect font metric issues."_q;
 		LOG(("Font Error: %1").arg(text));
-#if __has_include(<glib.h>)
+#if __has_include(<glib.h>) && !defined Q_OS_HAIKU
 		g_warning("%s", text.toUtf8().constData());
 #endif //  __has_include(<glib.h>)
 	}

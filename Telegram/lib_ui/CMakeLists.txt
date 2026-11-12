@@ -123,6 +123,12 @@ PRIVATE
     ui/paint/blobs.h
     ui/paint/blobs_linear.cpp
     ui/paint/blobs_linear.h
+    ui/platform/haiku/ui_window_haiku.cpp
+    ui/platform/haiku/ui_window_haiku.h
+    ui/platform/haiku/ui_window_title_haiku.cpp
+    ui/platform/haiku/ui_window_title_haiku.h
+    ui/platform/haiku/ui_utility_haiku.cpp
+    ui/platform/haiku/ui_utility_haiku.h
     ui/platform/linux/ui_window_linux.cpp
     ui/platform/linux/ui_window_linux.h
     ui/platform/linux/ui_window_title_linux.cpp

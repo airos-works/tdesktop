@@ -1688,6 +1688,27 @@ PRIVATE
     payments/payments_non_panel_process.h
     payments/payments_reaction_process.cpp
     payments/payments_reaction_process.h
+    platform/haiku/app_messages_haiku.cpp
+    platform/haiku/app_messages_haiku.h
+    platform/haiku/file_utilities_haiku.cpp
+    platform/haiku/file_utilities_haiku.h
+    platform/haiku/launcher_haiku.cpp
+    platform/haiku/launcher_haiku.h
+    platform/haiku/integration_haiku.cpp
+    platform/haiku/integration_haiku.h
+    platform/haiku/main_window_haiku.cpp
+    platform/haiku/main_window_haiku.h
+    platform/haiku/notifications_manager_haiku.cpp
+    platform/haiku/notifications_manager_haiku.h
+    platform/haiku/overlay_widget_haiku.h
+    platform/haiku/specific_haiku.cpp
+    platform/haiku/specific_haiku.h
+    platform/haiku/text_recognition_haiku.h
+    platform/haiku/translate_provider_haiku.cpp
+    platform/haiku/translate_provider_haiku.h
+    platform/haiku/tray_haiku.cpp
+    platform/haiku/tray_haiku.h
+    platform/haiku/webauthn_haiku.cpp
     platform/linux/file_utilities_linux.cpp
     platform/linux/file_utilities_linux.h
     platform/linux/launcher_linux.cpp
@@ -2198,16 +2219,6 @@ if (NOT build_winstore)
     )
 endif()
 
-if (HAIKU)
-	remove_target_sources(Telegram ${src_loc}
-		platform/linux/notifications_manager_linux.cpp
-	)
-    nice_target_sources(Telegram ${src_loc}
-    PRIVATE
-		platform/linux/notifications_manager_haiku.cpp
-    )
-endif()
-
 if (DESKTOP_APP_USE_PACKAGED)
     remove_target_sources(Telegram ${src_loc}
         platform/mac/mac_iconv_helper.c
@@ -2356,10 +2367,12 @@ else()
         qrc/telegram/bot_webview_shell.qrc
     )
 
+    if (NOT HAIKU)
     include(${cmake_helpers_loc}/external/glib/generate_dbus.cmake)
     generate_dbus(Telegram org.freedesktop.portal. XdpBackground ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.Background.xml)
     generate_dbus(Telegram org.freedesktop.portal. FlatpakPortal ${src_loc}/platform/linux/org.freedesktop.portal.Flatpak.xml)
     generate_dbus(Telegram org.freedesktop. XdgNotifications ${src_loc}/platform/linux/org.freedesktop.Notifications.xml)
+    endif()
 endif()
 
 if (build_macstore)

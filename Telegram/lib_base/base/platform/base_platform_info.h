@@ -80,6 +80,8 @@ void Finish();
 #include "base/platform/win/base_info_win.h"
 #elif defined Q_OS_MAC // Q_OS_WIN
 #include "base/platform/mac/base_info_mac.h"
+#elif defined Q_OS_HAIKU
+#include "base/platform/haiku/base_info_haiku.h"
 #else // Q_OS_WIN || Q_OS_MAC
 #include "base/platform/linux/base_info_linux.h"
 #endif // else for Q_OS_WIN || Q_OS_MAC

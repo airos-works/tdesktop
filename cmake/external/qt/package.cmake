@@ -79,7 +79,7 @@ if (QT_VERSION VERSION_GREATER_EQUAL 6.10)
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS GuiPrivate WidgetsPrivate REQUIRED)
 endif()
 
-if (LINUX)
+if (LINUX AND NOT HAIKU)
     find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS DBus WaylandCompositor QUIET)
 endif()
 

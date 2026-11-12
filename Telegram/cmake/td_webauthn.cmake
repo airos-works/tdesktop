@@ -49,6 +49,17 @@ elseif (APPLE)
         desktop-app::lib_base
         desktop-app::lib_crl
     )
+elseif (HAIKU)
+    # air/OS: no Bluetooth caBLE scanner yet (cable_scanner_haiku.cpp)
+    nice_target_sources(td_webauthn ${src_loc}
+    PRIVATE
+        webauthn/cable_scanner_haiku.cpp
+    )
+    target_link_libraries(td_webauthn
+    PRIVATE
+        desktop-app::lib_base
+        desktop-app::lib_crl
+    )
 else()
     nice_target_sources(td_webauthn ${src_loc}
     PRIVATE

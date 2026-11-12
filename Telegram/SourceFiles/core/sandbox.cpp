@@ -7,6 +7,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/sandbox.h"
 
+#ifdef Q_OS_HAIKU
+#include "platform/haiku/app_messages_haiku.h"
+#endif // Q_OS_HAIKU
+
 #include "base/platform/base_platform_info.h"
 #include "platform/platform_specific.h"
 #include "mainwidget.h"
@@ -170,8 +174,26 @@ int Sandbox::start() {
 		manager.setRestartHint(QSessionManager::RestartNever);
 	});
 
+#ifdef Q_OS_HAIKU
+	// air/OS: Telegram is a B_SINGLE_LAUNCH application. When it already
+	// runs, the roster has handed our arguments to it (B_ARGV_RECEIVED or
+	// B_SILENT_RELAUNCH, see platform/haiku/app_messages_haiku.cpp) as
+	// Qt created our BApplication: there is nothing left to do here. No
+	// local socket is needed to find the running instance.
+	if (Platform::AppMessages::AnotherInstanceRunning()) {
+		LOG(("Another instance runs, the roster handed it the launch."));
+		closeApplication();
+		return 0;
+	}
+	Platform::AppMessages::Start();
+	LOG(("This is the only instance of Telegram, starting app..."));
+	crl::on_main(this, [=] {
+		socketError(QLocalSocket::ServerNotFoundError);
+	});
+#else // Q_OS_HAIKU
 	LOG(("Connecting local socket to %1...").arg(_localServerName));
 	_localSocket.connectToServer(_localServerName);
+#endif // !Q_OS_HAIKU
 
 	if (QuitOnStartRequested) {
 		closeApplication();
@@ -424,8 +446,8 @@ void Sandbox::socketError(QLocalSocket::LocalSocketError e) {
 	}
 	_localSocket.close();
 
-	// Local server does not work in WinRT build.
-#ifndef Q_OS_WINRT
+	// Local server does not work in WinRT build, air/OS has the roster.
+#if !defined Q_OS_WINRT && !defined Q_OS_HAIKU
 	psCheckLocalSocket(_localServerName);
 
 	if (!_localServer.listen(_localServerName)) {
@@ -746,6 +768,29 @@ void Sandbox::closeApplication() {
 	_localSocket.close();
 
 	_updateChecker = nullptr;
+}
+
+void Sandbox::processExternalCommands(const QString &cmds) {
+	auto startUrls = QList<QUrl>();
+	auto activationRequired = false;
+	for (const auto &cmd : cmds.split(QChar(';'), Qt::SkipEmptyParts)) {
+		if (cmd.startsWith(u"CMD:"_q)) {
+			execExternal(cmd.mid(4));
+		} else if (cmd.startsWith(u"OPEN:"_q)) {
+			startUrls.append(QUrl(cmd.mid(5).mid(0, 8192)));
+			if (!activationRequired) {
+				activationRequired = StartUrlRequiresActivate(
+					startUrls.back().toString());
+			}
+		}
+	}
+	if (activationRequired) {
+		execExternal("show");
+	}
+	cRefStartUrls() << base::take(startUrls);
+	if (_application) {
+		_application->checkStartUrls();
+	}
 }
 
 uint64 Sandbox::execExternal(const QString &cmd) {

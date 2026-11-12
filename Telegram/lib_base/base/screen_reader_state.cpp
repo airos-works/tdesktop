@@ -4,6 +4,8 @@
 #include "base/platform/mac/base_screen_reader_state_mac.h"
 #elif defined(Q_OS_WIN) // Q_OS_MAC
 #include "base/platform/win/base_screen_reader_state_win.h"
+#elif defined(Q_OS_HAIKU)
+// air/OS: Qt's own accessibility state (no AT-SPI bus)
 #else
 #include "base/platform/linux/base_screen_reader_state_linux.h"
 #endif // Q_OS_MAC || Q_OS_WIN
@@ -17,6 +19,8 @@ ScreenReaderState *ScreenReaderState::Instance() {
 	static auto instance = Platform::MacScreenReaderState();
 #elif defined(Q_OS_WIN) // Q_OS_MAC
 	static auto instance = Platform::WinScreenReaderState();
+#elif defined(Q_OS_HAIKU)
+	static auto instance = GeneralScreenReaderState();
 #else // Q_OS_MAC || Q_OS_WIN
 	static auto instance = Platform::LinuxScreenReaderState();
 #endif // Q_OS_MAC || Q_OS_WIN

@@ -83,6 +83,8 @@ struct SystemTextReplaceResult {
 #include "ui/platform/win/ui_utility_win.h"
 #elif defined Q_OS_MAC // Q_OS_WINRT || Q_OS_WIN
 #include "ui/platform/mac/ui_utility_mac.h"
+#elif defined Q_OS_HAIKU
+#include "ui/platform/haiku/ui_utility_haiku.h"
 #else // Q_OS_WINRT || Q_OS_WIN || Q_OS_MAC
 #include "ui/platform/linux/ui_utility_linux.h"
 #endif // else for Q_OS_WINRT || Q_OS_WIN || Q_OS_MAC

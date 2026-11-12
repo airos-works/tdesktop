@@ -303,6 +303,8 @@ PRIVATE
     payments/ui/payments_reaction_box.cpp
     payments/ui/payments_reaction_box.h
 
+    platform/haiku/current_geo_location_haiku.cpp
+    platform/haiku/current_geo_location_haiku.h
     platform/linux/current_geo_location_linux.cpp
     platform/linux/current_geo_location_linux.h
     platform/linux/text_recognition_linux.h

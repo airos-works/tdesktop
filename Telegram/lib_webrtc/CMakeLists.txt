@@ -34,6 +34,7 @@ PRIVATE
     webrtc/details/webrtc_openal_adm.cpp
     webrtc/details/webrtc_openal_adm.h
 
+    webrtc/platform/haiku/webrtc_platform_haiku.cpp
     webrtc/platform/linux/webrtc_environment_linux.cpp
     webrtc/platform/linux/webrtc_environment_linux.h
     webrtc/platform/linux/webrtc_loopback_adm_linux.cpp

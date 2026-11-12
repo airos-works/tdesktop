@@ -1,5 +1,7 @@
 
-resource app_flags B_MULTIPLE_LAUNCH;
+// One Telegram: launching it again (Deskbar, a tg:// link, a notification)
+// hands the launch to the running one (platform/haiku/app_messages_haiku).
+resource app_flags B_SINGLE_LAUNCH;
 
 resource app_version {
 	major  = @MAJOR@,
@@ -16,6 +18,13 @@ resource app_version {
 resource app_signature "@APP_SIGNATURE@";
 
 resource("QT:QPA_FLAGS") "Q_REF_TO_ARGV";
+
+// tg:// and tonsite:// links (base/platform/haiku/base_url_scheme_haiku.cpp
+// makes Telegram their preferred application on first start)
+resource file_types message {
+	"types" = "application/x-vnd.Be.URL.tg",
+	"types" = "application/x-vnd.Be.URL.tonsite"
+};
 
 resource vector_icon {
 	$"6E6369660604005A0500020106023F2D01ABB6552BBE233F33AF499EC5487829"

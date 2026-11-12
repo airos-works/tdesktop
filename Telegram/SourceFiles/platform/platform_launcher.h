@@ -25,6 +25,8 @@ namespace Platform {
 #include "platform/win/launcher_win.h"
 #elif defined Q_OS_MAC // Q_OS_WINRT || Q_OS_WIN
 #include "platform/mac/launcher_mac.h"
+#elif defined Q_OS_HAIKU
+#include "platform/haiku/launcher_haiku.h"
 #else // Q_OS_WINRT || Q_OS_WIN || Q_OS_MAC
 #include "platform/linux/launcher_linux.h"
 #endif // else for Q_OS_WINRT || Q_OS_WIN || Q_OS_MAC

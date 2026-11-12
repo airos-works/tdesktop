@@ -17,6 +17,31 @@ get_filename_component(src_loc . REALPATH)
 target_precompile_headers(lib_base PRIVATE $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:${src_loc}/base/base_pch.h>)
 nice_target_sources(lib_base ${src_loc}
 PRIVATE
+    base/platform/haiku/base_battery_saving_haiku.cpp
+    base/platform/haiku/base_battery_saving_haiku.h
+    base/platform/haiku/base_file_utilities_haiku.cpp
+    base/platform/haiku/base_file_utilities_haiku.h
+    base/platform/haiku/base_global_shortcuts_haiku.cpp
+    base/platform/haiku/base_global_shortcuts_haiku.h
+    base/platform/haiku/base_haiku_library.cpp
+    base/platform/haiku/base_haptic_haiku.cpp
+    base/platform/haiku/base_haptic_haiku.h
+    base/platform/haiku/base_info_haiku.cpp
+    base/platform/haiku/base_info_haiku.h
+    base/platform/haiku/base_last_input_haiku.cpp
+    base/platform/haiku/base_last_input_haiku.h
+    base/platform/haiku/base_layout_switch_haiku.cpp
+    base/platform/haiku/base_layout_switch_haiku.h
+    base/platform/haiku/base_network_reachability_haiku.cpp
+    base/platform/haiku/base_power_save_blocker_haiku.cpp
+    base/platform/haiku/base_power_save_blocker_haiku.h
+    base/platform/haiku/base_process_haiku.cpp
+    base/platform/haiku/base_process_haiku.h
+    base/platform/haiku/base_system_media_controls_haiku.cpp
+    base/platform/haiku/base_system_unlock_haiku.cpp
+    base/platform/haiku/base_system_unlock_haiku.h
+    base/platform/haiku/base_url_scheme_haiku.cpp
+    base/platform/haiku/base_url_scheme_haiku.h
     base/platform/linux/base_battery_saving_linux.cpp
     base/platform/linux/base_battery_saving_linux.h
     base/platform/linux/base_file_utilities_linux.cpp
@@ -270,7 +295,16 @@ if (LINUX)
     PUBLIC
         desktop-app::external_kcoreaddons
     )
+endif()
+if (HAIKU)
+    # air/OS: the platform layer is the Be API (libbe), not GLib/D-Bus/XCB
+    target_link_libraries(lib_base
+    PUBLIC
+        be
+    )
 
+endif()
+if (LINUX AND NOT HAIKU)
     include(${cmake_helpers_loc}/external/glib/generate_dbus.cmake)
     generate_dbus(lib_base org.freedesktop. XdgDBus ${src_loc}/base/platform/linux/org.freedesktop.DBus.xml)
     generate_dbus(lib_base org.a11y. AtSpi ${src_loc}/base/platform/linux/org.a11y.Status.xml)

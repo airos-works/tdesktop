@@ -32,7 +32,7 @@ function(init_target target_name) # init_target(my_target [cxx_std_..] folder_na
             if (QT_VERSION VERSION_GREATER_EQUAL 6.2)
                 cmake_language(EVAL CODE "cmake_language(DEFER CALL qt_finalize_target ${target_name})")
             endif()
-            if (LINUX)
+            if (LINUX AND NOT HAIKU)
                 qt_import_plugins(${target_name}
                 INCLUDE
                     Qt::QGtk3ThemePlugin

@@ -20,6 +20,8 @@ namespace Platform {
 #include "platform/win/translate_provider_win.h"
 #elif defined Q_OS_MAC
 #include "platform/mac/translate_provider_mac.h"
+#elif defined Q_OS_HAIKU
+#include "platform/haiku/translate_provider_haiku.h"
 #else
 #include "platform/linux/translate_provider_linux.h"
 #endif

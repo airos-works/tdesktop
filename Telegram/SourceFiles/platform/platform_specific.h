@@ -75,6 +75,8 @@ void finish();
 #include "platform/win/specific_win.h"
 #elif defined Q_OS_MAC // Q_OS_WIN
 #include "platform/mac/specific_mac.h"
+#elif defined Q_OS_HAIKU
+#include "platform/haiku/specific_haiku.h"
 #else // Q_OS_WIN || Q_OS_MAC
 #include "platform/linux/specific_linux.h"
 #endif // else for Q_OS_WIN || Q_OS_MAC

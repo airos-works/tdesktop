@@ -35,7 +35,7 @@ PUBLIC
     desktop-app::external_qt_static_plugins_kimageformats
 )
 
-if (LINUX)
+if (LINUX AND NOT HAIKU)
     add_checked_subdirectory(hime)
     target_link_libraries(external_qt_static_plugins
     PUBLIC

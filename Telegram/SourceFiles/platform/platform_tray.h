@@ -21,6 +21,8 @@ class Tray;
 #include "platform/win/tray_win.h"
 #elif defined Q_OS_MAC // Q_OS_WIN
 #include "platform/mac/tray_mac.h"
+#elif defined Q_OS_HAIKU
+#include "platform/haiku/tray_haiku.h"
 #else // Q_OS_WIN || Q_OS_MAC
 #include "platform/linux/tray_linux.h"
 #endif // else for Q_OS_WIN || Q_OS_MAC
