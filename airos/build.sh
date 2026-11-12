@@ -92,7 +92,13 @@ export LD_LIBRARY_PATH=$HOSTQT/lib:$HOSTSVG/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_P
 # search the program first, skip it with a bloom filter (runtime_loader
 # also requires the SysV table, hence "both").
 VISIBILITY="-fvisibility=hidden"
-STARTUP_LDFLAGS="-Wl,-O1 -Wl,-Bsymbolic -Wl,--hash-style=both -Wl,--exclude-libs,ALL"
+# The runtime loader looks a symbol up through the libraries in the order
+# of the program's DT_NEEDED entries, and HaikuPorts' have SysV hash tables
+# only (no bloom filter): most of the remaining lookups (RTTI vtables,
+# __cxa_pure_virtual, QObject's virtuals) are for libstdc++ and Qt, which
+# the link order put last, behind some 30 others. They come first.
+FIRST_NEEDED="-Wl,--no-as-needed -lstdc++ -lQt6Core -lQt6Gui -lQt6Widgets -lroot -lbe -lnetwork -lmedia -Wl,--as-needed"
+STARTUP_LDFLAGS="-Wl,-O1 -Wl,-Bsymbolic -Wl,--hash-style=both -Wl,--exclude-libs,ALL $FIRST_NEEDED"
 if [[ ! -f $BUILD/build.ninja || $ROOT/airos/build.sh -nt $BUILD/build.ninja ]]; then
 	cmake -S "$ROOT" -B "$BUILD" -G Ninja \
 		-DCMAKE_TOOLCHAIN_FILE="$ROOT/airos/toolchain.cmake" \
@@ -103,7 +109,7 @@ if [[ ! -f $BUILD/build.ninja || $ROOT/airos/build.sh -nt $BUILD/build.ninja ]];
 		-DCMAKE_CXX_FLAGS_RELEASE="-O2" -DCMAKE_C_FLAGS_RELEASE="-O2" \
 		-DCMAKE_CXX_FLAGS="$VISIBILITY -fvisibility-inlines-hidden" \
 		-DCMAKE_C_FLAGS="$VISIBILITY" \
-		-DCMAKE_EXE_LINKER_FLAGS="-lnetwork -lbe -lmedia -specs=$UNWIND_SPECS $STARTUP_LDFLAGS" \
+		-DCMAKE_EXE_LINKER_FLAGS="-specs=$UNWIND_SPECS $STARTUP_LDFLAGS" \
 		-DCMAKE_SHARED_LINKER_FLAGS="-specs=$UNWIND_SPECS" \
 		-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 		-DBoost_USE_STATIC_LIBS=OFF \

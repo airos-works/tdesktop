@@ -93,6 +93,9 @@ int Sandbox::start() {
 		_updateChecker = std::make_unique<Core::UpdateChecker>();
 	}
 
+	// air/OS: the roster keeps Telegram (B_SINGLE_LAUNCH) to one instance;
+	// the lock file only cost an fsync() of /tmp (30 ms) on every start.
+#ifndef Q_OS_HAIKU
 	{
 		const auto d = QFile::encodeName(cExeDir() + cExeName());
 		QByteArray h;
@@ -116,6 +119,7 @@ int Sandbox::start() {
 		}
 	}
 
+#endif // !Q_OS_HAIKU
 #if defined Q_OS_LINUX && QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	_localServer.setSocketOptions(QLocalServer::AbstractNamespaceOption);
 	_localSocket.setSocketOptions(QLocalSocket::AbstractNamespaceOption);
@@ -274,7 +278,9 @@ void Sandbox::launchApplication() {
 		} else if (_application) {
 			return;
 		}
+		StartupTrace("launchApplication");
 		setupScreenScale();
+		StartupTrace("screen scale");
 
 		rpl::single(
 			rpl::empty
@@ -437,6 +443,7 @@ void Sandbox::socketReading() {
 }
 
 void Sandbox::socketError(QLocalSocket::LocalSocketError e) {
+	StartupTrace("single instance checked");
 	if (Quitting()) return;
 
 	if (_secondInstance) {
@@ -477,6 +484,7 @@ void Sandbox::socketError(QLocalSocket::LocalSocketError e) {
 }
 
 void Sandbox::singleInstanceChecked() {
+	StartupTrace("singleInstanceChecked");
 	if (cManyInstance()) {
 		LOG(("App Info: Detected another instance"));
 	}

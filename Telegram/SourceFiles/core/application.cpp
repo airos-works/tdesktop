@@ -22,6 +22,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/options.h"
 #include "base/qt_signal_producer.h"
 #include "base/timer.h"
+#include "base/call_delayed.h"
 #include "base/unixtime.h"
 #include "core/core_screenshot_protection.h"
 #include "core/core_settings.h"
@@ -111,6 +112,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Core {
 namespace {
+
+#ifdef Q_OS_HAIKU
+constexpr auto kHaikuTrayDelay = crl::time(300);
+#endif // Q_OS_HAIKU
 
 constexpr auto kQuitPreventTimeoutMs = crl::time(1500);
 constexpr auto kAutoLockTimeoutLateMs = crl::time(3000);
@@ -380,8 +385,10 @@ void Application::run() {
 
 	DEBUG_LOG(("Application Info: starting app..."));
 
+#ifndef Q_OS_HAIKU
 	// Create mime database, so it won't be slow later.
 	QMimeDatabase().mimeTypeForName(u"text/plain"_q);
+#endif // !Q_OS_HAIKU (air/OS: on first use, not on the way to the window)
 	StartupTrace("mime database");
 
 	// Check now to avoid re-entrance later.
@@ -640,9 +647,20 @@ void Application::startTray() {
 	InvokeQueued(this, [=] {
 		createTray();
 	});
-#else // Q_OS_MAC
+#elif defined Q_OS_HAIKU // Q_OS_MAC
+	// air/OS: adding the Deskbar replicant waits for Deskbar (~50 ms);
+	// the window comes first unless Telegram starts in the tray.
+	if (cStartInTray()
+		|| settings().workMode() == Settings::WorkMode::TrayOnly) {
+		createTray();
+	} else {
+		base::call_delayed(kHaikuTrayDelay, this, [=] {
+			createTray();
+		});
+	}
+#else // Q_OS_MAC || Q_OS_HAIKU
 	createTray();
-#endif // Q_OS_MAC
+#endif // Q_OS_MAC || Q_OS_HAIKU
 }
 
 void Application::createTray() {

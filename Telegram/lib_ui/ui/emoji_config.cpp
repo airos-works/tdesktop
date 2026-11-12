@@ -62,10 +62,15 @@ private:
 	void generateCache();
 	void checkUniversalImages();
 	void pushSprite(QImage &&data);
+	[[nodiscard]] bool ensureSprite(int index);
 
 	int _id = 0;
 	int _size = 0;
+	// Sprites [0, _available) are in memory or in the cache on disk; the
+	// ones on disk are read the first time one of their emoji is drawn
+	// (a start read all of them: ~50 MB at 2x, on the main thread).
 	std::vector<QPixmap> _sprites;
+	int _available = 0;
 	base::binary_guard _generating;
 	bool _unsupported = false;
 
@@ -249,6 +254,26 @@ void SaveToFile(int id, const QImage &image, int size, int index) {
 			).arg(f.fileName()
 			).arg(size));
 	}
+}
+
+bool CacheFileValid(int id, int size, int index) {
+	const auto rows = RowsCount(index);
+	const auto width = kImagesPerRow * size;
+	const auto height = rows * size;
+	const auto fileSize = 4 * sizeof(uint32)
+		+ (width * height * 4)
+		+ openssl::kSha256Size;
+	QFile f(CacheFilePath(size, index));
+	if (f.size() != fileSize || !f.open(QIODevice::ReadOnly)) {
+		return false;
+	}
+	uint32 header[4] = { 0 };
+	return (f.read(reinterpret_cast<char*>(header), sizeof(header))
+			== sizeof(header))
+		&& (header[0] == ComputeVersion(id))
+		&& (header[1] == uint32(size))
+		&& (header[2] == uint32(width))
+		&& (header[3] == uint32(height));
 }
 
 QImage LoadFromFile(int id, int size, int index) {
@@ -813,7 +838,26 @@ Instance::Instance(int size) : _id(Universal->id()), _size(size) {
 bool Instance::cached() const {
 	Expects(Universal != nullptr);
 
-	return (Universal->id() == _id) && (_sprites.size() == SpritesCount);
+	return (Universal->id() == _id) && (_available == SpritesCount);
+}
+
+bool Instance::ensureSprite(int index) {
+	if (index >= _available) {
+		return false;
+	} else if (!_sprites[index].isNull()) {
+		return true;
+	}
+	auto image = LoadFromFile(_id, _size, index);
+	if (image.isNull()) {
+		// The file went bad since the start: make it again from here.
+		_available = index;
+		_sprites.resize(index);
+		generateCache();
+		return false;
+	}
+	_sprites[index] = PixmapFromImage(std::move(image));
+	_sprites[index].setDevicePixelRatio(style::DevicePixelRatio());
+	return true;
 }
 
 void Instance::draw(QPainter &p, EmojiPtr emoji, int x, int y) {
@@ -823,7 +867,7 @@ void Instance::draw(QPainter &p, EmojiPtr emoji, int x, int y) {
 		generateCache();
 	}
 	const auto sprite = emoji->sprite();
-	if (sprite >= _sprites.size()) {
+	if (!ensureSprite(sprite)) {
 		Assert(Universal != nullptr);
 		Universal->draw(p, emoji, _size, x, y);
 		return;
@@ -836,12 +880,12 @@ void Instance::draw(QPainter &p, EmojiPtr emoji, int x, int y) {
 
 void Instance::readCache() {
 	for (auto i = 0; i != SpritesCount; ++i) {
-		auto image = LoadFromFile(_id, _size, i);
-		if (image.isNull()) {
-			return;
+		if (!CacheFileValid(_id, _size, i)) {
+			break;
 		}
-		pushSprite(std::move(image));
+		++_available;
 	}
+	_sprites.resize(_available);
 }
 
 void Instance::checkUniversalImages() {
@@ -851,6 +895,7 @@ void Instance::checkUniversalImages() {
 		_id = Universal->id();
 		_generating = nullptr;
 		_sprites.clear();
+		_available = 0;
 	}
 	if (!Universal->ensureLoaded()) {
 		if (Universal->id() != 0) {
@@ -869,7 +914,7 @@ void Instance::generateCache() {
 		return;
 	}
 	const auto size = _size;
-	const auto index = _sprites.size();
+	const auto index = _available;
 	crl::async([
 		=,
 		universal = Universal,
@@ -894,8 +939,10 @@ void Instance::generateCache() {
 }
 
 void Instance::pushSprite(QImage &&data) {
+	_sprites.resize(_available);
 	_sprites.push_back(PixmapFromImage(std::move(data)));
 	_sprites.back().setDevicePixelRatio(style::DevicePixelRatio());
+	++_available;
 }
 
 const std::shared_ptr<UniversalImages> &SourceImages() {
