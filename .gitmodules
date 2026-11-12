@@ -31,9 +31,6 @@
 [submodule "Telegram/ThirdParty/QR"]
 	path = Telegram/ThirdParty/QR
 	url = https://github.com/nayuki/QR-Code-generator
-[submodule "Telegram/lib_qr"]
-	path = Telegram/lib_qr
-	url = https://github.com/desktop-app/lib_qr.git
 [submodule "Telegram/ThirdParty/hunspell"]
 	path = Telegram/ThirdParty/hunspell
 	url = https://github.com/hunspell/hunspell
