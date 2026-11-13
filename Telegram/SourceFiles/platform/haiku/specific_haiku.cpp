@@ -17,7 +17,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/main_window.h"
 
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QSystemTrayIcon>
 #include <QtGui/QDesktopServices>
 #include <QtCore/QStandardPaths>
 
@@ -106,8 +105,9 @@ bool AutostartSkip() {
 	return !cAutoStart();
 }
 
+// The tray icon is Telegram's Deskbar item (tray_haiku.cpp).
 bool TrayIconSupported() {
-	return QSystemTrayIcon::isSystemTrayAvailable();
+	return be_roster->IsRunning("application/x-vnd.Be-TSKB");
 }
 
 bool SkipTaskbarSupported() {

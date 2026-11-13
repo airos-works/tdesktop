@@ -9,20 +9,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "platform/platform_tray.h"
 
-#include "base/unique_qptr.h"
-
-namespace Ui {
-class PopupMenu;
-} // namespace Ui
-
-class QMenu;
-class QSystemTrayIcon;
-
 namespace Platform {
 
-class IconGraphic;
-class TrayEventFilter;
-
+// air/OS: the tray icon is Telegram's Deskbar item (deskbar_item_haiku.cpp,
+// an add-on Deskbar loads), with the unread badge and a native menu.
 class Tray final {
 public:
 	Tray();
@@ -51,13 +41,12 @@ public:
 	[[nodiscard]] rpl::lifetime &lifetime();
 
 private:
-	std::unique_ptr<IconGraphic> _iconGraphic;
+	struct Private;
 
-	base::unique_qptr<QSystemTrayIcon> _icon;
-	base::unique_qptr<QMenu> _menu;
-	base::unique_qptr<Ui::PopupMenu> _menuCustom;
+	void sendIcon();
+	void sendMenu();
 
-	base::unique_qptr<TrayEventFilter> _eventFilter;
+	const std::unique_ptr<Private> _private;
 
 	rpl::event_stream<> _iconClicks;
 	rpl::event_stream<> _aboutToShowRequests;

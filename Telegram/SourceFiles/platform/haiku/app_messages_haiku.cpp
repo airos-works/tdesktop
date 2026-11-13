@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "platform/haiku/app_messages_haiku.h"
 
+#include "platform/haiku/deskbar_protocol_haiku.h"
+
 #include "core/sandbox.h"
 #include "core/application.h"
 
@@ -22,6 +24,7 @@ namespace Platform::AppMessages {
 namespace {
 
 Fn<void(NotificationClick)> NotificationHandler;
+Fn<void(not_null<BMessage*>)> TrayHandler;
 
 [[nodiscard]] std::optional<NotificationClick> ParseNotification(
 		const QString &argument) {
@@ -100,6 +103,17 @@ public:
 			}
 			Post([=] { ProcessArguments(arguments, false); });
 		} return B_SKIP_MESSAGE;
+		default:
+			if (DeskbarTray::IsTrayMessage(message->what)) {
+				const auto copy = std::make_shared<BMessage>(*message);
+				Post([=] {
+					if (TrayHandler) {
+						TrayHandler(copy.get());
+					}
+				});
+				return B_SKIP_MESSAGE;
+			}
+			break;
 		case B_SILENT_RELAUNCH:
 			Post([] { ProcessArguments({}, true); });
 			return B_SKIP_MESSAGE;
@@ -143,6 +157,10 @@ QByteArray Signature() {
 
 void SetNotificationHandler(Fn<void(NotificationClick)> handler) {
 	NotificationHandler = std::move(handler);
+}
+
+void SetTrayHandler(Fn<void(not_null<BMessage*>)> handler) {
+	TrayHandler = std::move(handler);
 }
 
 } // namespace Platform::AppMessages

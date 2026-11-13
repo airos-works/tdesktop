@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/startup_trace.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -46,6 +47,13 @@ void StartupTrace(const char *point) {
 		return;
 	}
 	const auto now = NowUs();
+	if (!strcmp(point, "main")) {
+		// The stack at main(): its frame must be 16-byte aligned.
+		fprintf(
+			stderr,
+			"startup: main() frame %% 16 = %d\n",
+			int(reinterpret_cast<uintptr_t>(__builtin_frame_address(1)) % 16));
+	}
 	fprintf(
 		stderr,
 		"startup: %7.1f ms  cpu %7.1f ms  %s\n",
@@ -59,3 +67,4 @@ void StartupTrace(const char *point) {
 }
 
 } // namespace Core
+

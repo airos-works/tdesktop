@@ -72,9 +72,18 @@ FilteredCommandLineArguments::FilteredCommandLineArguments(
 	int argc,
 	char **argv) {
 	// For now just pass only the first argument, the executable path.
+#ifdef Q_OS_HAIKU
+	// air/OS: Qt's platform plugin reads the application signature from
+	// the file at applicationFilePath(), which a relative argv[0] gets
+	// wrong once Telegram has changed to its working directory: Telegram
+	// would run as "application/x-vnd.qt6-TelegramDesktop", without single
+	// launch and unknown to its Deskbar item. The absolute path, then.
+	pushArgument(QFile::encodeName(cExeDir() + cExeName()).constData());
+#else // Q_OS_HAIKU
 	for (auto i = 0; i != kForwardArgumentCount; ++i) {
 		pushArgument(argv[i]);
 	}
+#endif // !Q_OS_HAIKU
 
 #if defined Q_OS_WIN || defined Q_OS_MAC
 	if (OptionFreeType.value() || OptionHighDpiDownscale.value()) {

@@ -14,6 +14,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // B_SINGLE_LAUNCH application on air/OS, so the second launch never
 // starts a second Telegram: the roster hands its arguments over.
 
+class BMessage;
+
 namespace Platform::AppMessages {
 
 // The argument a notification's click adds:
@@ -40,5 +42,9 @@ void Start();
 
 // Notification clicks are reported here, on the main thread.
 void SetNotificationHandler(Fn<void(NotificationClick)> handler);
+
+// The Deskbar item's messages (deskbar_protocol_haiku.h), on the main
+// thread.
+void SetTrayHandler(Fn<void(not_null<BMessage*>)> handler);
 
 } // namespace Platform::AppMessages

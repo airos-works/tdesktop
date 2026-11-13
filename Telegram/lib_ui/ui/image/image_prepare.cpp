@@ -455,13 +455,34 @@ std::array<QImage, 4> PrepareCorners(
 	return result;
 }
 
+// The format of the common images from their first bytes: a QImageReader
+// that is not told the format asks every image format plugin whether it
+// can read the data, which loads all of them (and their libraries: TIFF,
+// JPEG 2000, MNG...) the first time an image is read.
+[[nodiscard]] QByteArray SniffFormat(const QByteArray &bytes) {
+	const auto starts = [&](const char *magic, int size, int offset = 0) {
+		return (bytes.size() >= offset + size)
+			&& !memcmp(bytes.constData() + offset, magic, size);
+	};
+	if (starts("\xFF\xD8\xFF", 3)) {
+		return "jpeg";
+	} else if (starts("\x89PNG\r\n\x1A\n", 8)) {
+		return "png";
+	} else if (starts("GIF87a", 6) || starts("GIF89a", 6)) {
+		return "gif";
+	} else if (starts("RIFF", 4) && starts("WEBP", 4, 8)) {
+		return "webp";
+	}
+	return QByteArray();
+}
+
 [[nodiscard]] ReadResult ReadOther(const ReadArgs &args) {
 	auto bytes = args.content;
 	if (bytes.isEmpty()) {
 		return {};
 	}
 	auto buffer = QBuffer(&bytes);
-	auto reader = QImageReader(&buffer);
+	auto reader = QImageReader(&buffer, SniffFormat(bytes));
 	reader.setAutoTransform(true);
 	if (!reader.canRead()) {
 		return {};

@@ -23,6 +23,13 @@ if [[ -f $OUT/.key && $(cat "$OUT/.key") == "$key" ]]; then
 	echo "sysroot $OUT is current"
 	exit 0
 fi
+# TDESKTOP_KEEP_SYSROOT=1: keep a sysroot of an older SDK revision (hand
+# builds while CI rebuilds the SDK, which holds its lock for a long time)
+if [[ ${TDESKTOP_KEEP_SYSROOT:-} == 1 && -f $OUT/.key ]] \
+		&& [[ $(cut -d' ' -f2- "$OUT/.key") == "${reqs[*]}" ]]; then
+	echo "sysroot $OUT kept ($(cut -d' ' -f1 "$OUT/.key"))"
+	exit 0
+fi
 # reading the SDK: hold its lock (shared) while copying
 export AIROS_ARCH=$ARCH
 . "$AIROS_CI/lib/sdk.sh"

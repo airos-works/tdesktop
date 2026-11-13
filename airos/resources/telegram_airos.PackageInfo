@@ -1,5 +1,5 @@
 name			telegram_airos
-version			7.1.3~airos1-1
+version			7.1.3~airos1-2
 architecture		x86_64
 summary			"Telegram for air/OS"
 description		"Telegram Desktop for air/OS (airos-works/tdesktop): Telegram's official desktop client with an air/OS platform layer on the Be API (BNotification, Tracker, the roster, Deskbar) instead of the freedesktop one, single launch, and a start in well under a second."

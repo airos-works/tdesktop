@@ -114,6 +114,28 @@ if (HAIKU)
 		jpeg
 		translation
 	)
+
+	# The tray icon: a Deskbar add-on of its own, loaded into Deskbar's team
+	# (platform/haiku/deskbar_item_haiku.cpp); libbe only. Its view class is
+	# named after the configure time: Deskbar never unloads an add-on and
+	# finds item classes by name in the first image it loaded with one.
+	add_library(telegram_deskbar_item SHARED
+		${src_loc}/platform/haiku/deskbar_item_haiku.cpp
+	)
+	target_include_directories(telegram_deskbar_item PRIVATE ${src_loc})
+	target_link_libraries(telegram_deskbar_item PRIVATE be)
+	string(TIMESTAMP telegram_tray_stamp "%Y%m%d%H%M%S" UTC)
+	target_compile_definitions(telegram_deskbar_item
+	PRIVATE
+		TELEGRAM_TRAY_VIEW=TelegramTrayView_${telegram_tray_stamp}
+	)
+	set_target_properties(telegram_deskbar_item PROPERTIES
+		OUTPUT_NAME "Telegram Deskbar item"
+		PREFIX ""
+		SUFFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+	)
+	add_dependencies(Telegram telegram_deskbar_item)
 endif()
 
 target_precompile_headers(Telegram PRIVATE $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:${src_loc}/stdafx.h>)
@@ -1692,6 +1714,7 @@ PRIVATE
     payments/payments_reaction_process.h
     platform/haiku/app_messages_haiku.cpp
     platform/haiku/app_messages_haiku.h
+    platform/haiku/deskbar_protocol_haiku.h
     platform/haiku/file_utilities_haiku.cpp
     platform/haiku/file_utilities_haiku.h
     platform/haiku/launcher_haiku.cpp
